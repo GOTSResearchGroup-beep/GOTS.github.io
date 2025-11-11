@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Calendar, ArrowRight } from "lucide-react"
 import { getImagePath, getPagePath } from "@/lib/utils"
@@ -24,6 +25,9 @@ interface NewsItem {
 export function NewsSection() {
   const [featuredNews, setFeaturedNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const openModal = (id: number) => setExpandedId(id)
+  const closeModal = () => setExpandedId(null)
 
   useEffect(() => {
     const loadNews = async () => {
@@ -74,7 +78,11 @@ export function NewsSection() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredNews.map((news: NewsItem) => (
-              <Card key={news.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <Card
+                key={news.id}
+                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => openModal(news.id)}
+              >
                 <div className="aspect-video relative overflow-hidden bg-muted">
                   <img
                     src={getImagePath(news.image) || getImagePath("/placeholder.svg")}
@@ -104,6 +112,34 @@ export function NewsSection() {
               </Card>
             ))}
           </div>
+          {/* Modal de noticia expandida */}
+          <Dialog open={expandedId !== null} onOpenChange={open => !open && closeModal()}>
+            {expandedId !== null && (() => {
+              const item = featuredNews.find(n => n.id === expandedId)
+              if (!item) return null
+              // Texto especial para el seminario
+              const seminarioTexto = `Seguro no sabías que...\n\nLas cristalinas del núcleo del cristalino son algunas de las proteínas más longevas del organismo humano; muchas nunca se reemplazan desde antes del nacimiento. Con el paso de las décadas sufren modificaciones post-traduccionales acumulativas (oxidación, deamidación) que generan pigmentos amarillentos. Este envejecimiento molecular silencioso está directamente ligado a las cataratas.`
+              return (
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>{item.title}</DialogTitle>
+                    <DialogDescription>{item.dateFormatted} &middot; {item.category}</DialogDescription>
+                  </DialogHeader>
+                  <div className="w-full flex flex-col items-center gap-6">
+                    <img
+                      src={getImagePath(item.image)}
+                      alt={item.title}
+                      className="w-full max-w-lg rounded-lg shadow-lg object-cover"
+                      style={{ maxHeight: 350, objectFit: 'cover' }}
+                    />
+                    <div className="w-full text-base text-foreground whitespace-pre-line">
+                      {item.id === 1 ? seminarioTexto : item.description}
+                    </div>
+                  </div>
+                </DialogContent>
+              )
+            })()}
+          </Dialog>
 
           {/* Botón Ver Más Noticias */}
           <div className="text-center mt-12">

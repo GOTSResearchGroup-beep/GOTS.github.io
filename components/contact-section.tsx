@@ -48,8 +48,8 @@ export function ContactSection() {
                   </div>
                   <div>
                     <h3 className="font-sans font-semibold mb-1">Email</h3>
-                    <a href="mailto:pigroup.uis@gmail.com" className="text-sm font-sans text-black hover:underline">
-                      pigroup.uis@gmail.com
+                    <a href="mailto:gots.research.group@gmail.com" className="text-sm font-sans text-black hover:underline">
+                      gots.research.group@gmail.com
                     </a>
                   </div>
                 </div>
@@ -149,7 +149,7 @@ export function ContactSection() {
                     variant="outline"
                     className="w-full font-sans font-medium border-accent text-black hover:bg-accent hover:text-accent-foreground bg-transparent"
                   >
-                    <a href="mailto:pigroup.uis@gmail.com">Escribir Email</a>
+                    <a href="mailto:gots.research.group@gmail.com">Escribir Email</a>
                   </Button>
                 </div>
 
@@ -190,7 +190,7 @@ export function ContactSection() {
                       asChild 
                       className="bg-primary text-primary-foreground hover:bg-primary/90 font-sans font-medium"
                     >
-                      <a href="mailto:pigroup.uis@gmail.com?subject=Propuesta%20de%20Colaboración">
+                      <a href="mailto:gots.research.group@gmail.com?subject=Propuesta%20de%20Colaboración">
                         Proponer Colaboración
                       </a>
                     </Button>

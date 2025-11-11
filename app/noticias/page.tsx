@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -29,7 +30,7 @@ export default function NewsPage() {
   const [filteredNews, setFilteredNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set())
+  const [expandedId, setExpandedId] = useState<number | null>(null)
 
   useEffect(() => {
     const loadNews = async () => {
@@ -66,15 +67,8 @@ export default function NewsPage() {
     setFilteredNews(filtered)
   }, [allNews, categoryFilter])
 
-  const toggleExpanded = (id: number) => {
-    const newExpanded = new Set(expandedItems)
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id)
-    } else {
-      newExpanded.add(id)
-    }
-    setExpandedItems(newExpanded)
-  }
+  const openModal = (id: number) => setExpandedId(id)
+  const closeModal = () => setExpandedId(null)
 
   // Obtener categorías únicas
   const uniqueCategories = [...new Set(allNews.map(item => item.category))].sort()
@@ -141,95 +135,116 @@ export default function NewsPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredNews.map((item: NewsItem) => {
-                const isExpanded = expandedItems.has(item.id)
+              {filteredNews.map((item: NewsItem) => (
+                <Card
+                  key={item.id}
+                  className={`overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer ${
+                    item.featured ? 'ring-2 ring-accent/20 bg-accent/5' : ''
+                  }`}
+                  onClick={() => openModal(item.id)}
+                >
+                  {/* Imagen */}
+                  <div className="aspect-video relative overflow-hidden bg-muted">
+                    <img
+                      src={getImagePath(item.image)}
+                      alt={item.title}
+                      loading="lazy"
+                      className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                    />
+                    {item.featured && (
+                      <div className="absolute top-3 left-3 bg-accent text-accent-foreground px-2 py-1 rounded-full text-xs font-medium">
+                        Destacada
+                      </div>
+                    )}
+                  </div>
+                  {/* Contenido */}
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>{item.dateFormatted}</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {item.category}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg font-serif leading-tight line-clamp-2">
+                      {item.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                      {item.summary}
+                    </p>
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {item.tags.slice(0, 3).map((tag, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="text-xs"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                      {item.tags.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{item.tags.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-3 border-t text-xs text-muted-foreground">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          <span>{item.author}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{item.readTime}</span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 text-xs text-primary hover:text-primary/80"
+                        onClick={e => { e.stopPropagation(); openModal(item.id); }}
+                      >
+                        Leer más
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            {/* Modal de noticia expandida */}
+            <Dialog open={expandedId !== null} onOpenChange={open => !open && closeModal()}>
+              {expandedId !== null && (() => {
+                const item = filteredNews.find(n => n.id === expandedId)
+                if (!item) return null
+                // Texto especial para el seminario
+                const seminarioTexto = `Seguro no sabías que...\n\nLas cristalinas del núcleo del cristalino son algunas de las proteínas más longevas del organismo humano; muchas nunca se reemplazan desde antes del nacimiento. Con el paso de las décadas sufren modificaciones post-traduccionales acumulativas (oxidación, deamidación) que generan pigmentos amarillentos. Este envejecimiento molecular silencioso está directamente ligado a las cataratas.`
                 return (
-                  <Card 
-                    key={item.id} 
-                    className={`overflow-hidden hover:shadow-xl transition-all duration-300 ${
-                      item.featured ? 'ring-2 ring-accent/20 bg-accent/5' : ''
-                    }`}
-                  >
-                    {/* Imagen */}
-                    <div className="aspect-video relative overflow-hidden bg-muted">
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>{item.title}</DialogTitle>
+                      <DialogDescription>{item.dateFormatted} &middot; {item.category}</DialogDescription>
+                    </DialogHeader>
+                    <div className="w-full flex flex-col items-center gap-6">
                       <img
                         src={getImagePath(item.image)}
                         alt={item.title}
-                        loading="lazy"
-                        className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                        className="w-full max-w-lg rounded-lg shadow-lg object-cover"
+                        style={{ maxHeight: 350, objectFit: 'cover' }}
                       />
-                      {item.featured && (
-                        <div className="absolute top-3 left-3 bg-accent text-accent-foreground px-2 py-1 rounded-full text-xs font-medium">
-                          Destacada
-                        </div>
-                      )}
+                      <div className="w-full text-base text-foreground whitespace-pre-line">
+                        {item.id === 1 ? seminarioTexto : item.description}
+                      </div>
                     </div>
-                    
-                    {/* Contenido */}
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          <span>{item.dateFormatted}</span>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {item.category}
-                        </Badge>
-                      </div>
-                      <CardTitle className="text-lg font-serif leading-tight line-clamp-2">
-                        {item.title}
-                      </CardTitle>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                        {isExpanded ? item.description : item.summary}
-                      </p>
-
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {item.tags.slice(0, isExpanded ? item.tags.length : 3).map((tag, index) => (
-                          <Badge 
-                            key={index}
-                            variant="secondary" 
-                            className="text-xs"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                        {!isExpanded && item.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{item.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-3 border-t text-xs text-muted-foreground">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            <span>{item.author}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{item.readTime}</span>
-                          </div>
-                        </div>
-                        
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-auto p-0 text-xs text-primary hover:text-primary/80"
-                          onClick={() => toggleExpanded(item.id)}
-                        >
-                          {isExpanded ? 'Ver menos' : 'Leer más'}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  </DialogContent>
                 )
-              })}
+              })()}
+            </Dialog>
             </div>
 
             {filteredNews.length === 0 && (
