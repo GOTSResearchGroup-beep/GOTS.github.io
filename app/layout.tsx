@@ -21,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={inter.variable}>
-      <body className={`font-sans antialiased`}>
+    <html lang="es" className={`dark ${inter.variable}`}>
+      <body className={`font-sans antialiased bg-black text-white`}>
         {children}
   {/* <Analytics /> */}
       </body>
