@@ -38,7 +38,7 @@ export function Header() {
                 isScrolled ? "text-foreground" : "text-white"
               }`}
             >
-              PIGroup Research
+              GOTS Group Research
             </span>
           </a>
 

@@ -10,8 +10,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "PIGroup Research - Universidad Industrial de Santander",
-  description: "Grupo de investigación PIGroup de la Universidad Industrial de Santander",
+  title: "GOTS Group Research - Universidad Industrial de Santander",
+  description: "Grupo de Óptica y Tratamiento de Señales (GOTS)",
   generator: "v0.app",
 }
 

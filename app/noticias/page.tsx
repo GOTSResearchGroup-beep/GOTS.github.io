@@ -34,7 +34,7 @@ export default function NewsPage() {
   useEffect(() => {
     const loadNews = async () => {
       try {
-        const response = await fetch(getImagePath('/news.json'))
+  const response = await fetch(getImagePath('/Noticias/news.json'))
         const data = await response.json()
         // Ordenar por fecha (más recientes primero) y luego por destacadas
         const sorted = data.news.sort((a: NewsItem, b: NewsItem) => {

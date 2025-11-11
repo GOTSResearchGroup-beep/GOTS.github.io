@@ -16,15 +16,15 @@ export function Footer() {
               <div className="flex items-center gap-3">
                 <Image
                   src={getImagePath("/logo.png") || "/placeholder.svg"}
-                  alt="PIGroup Logo"
+                  alt="GOTS Logo"
                   width={40}
                   height={40}
                   className="w-10 h-10"
                 />
-                <span className="text-lg font-serif font-bold">PIGroup Research</span>
+                <span className="text-lg font-serif font-bold">GOTS Group Research</span>
               </div>
               <p className="text-sm text-primary-foreground/80 leading-relaxed">
-                Grupo de investigación de la Universidad Industrial de Santander dedicado a la excelencia científica.
+                Grupo de Óptica y Tratamiento de Señales (GOTS)
               </p>
             </div>
 
@@ -105,7 +105,7 @@ export function Footer() {
           {/* Bottom Bar */}
           <div className="border-t border-primary-foreground/20 pt-8 text-center">
             <p className="text-sm text-primary-foreground/70">
-              © {currentYear} PIGroup Research - Universidad Industrial de Santander. Todos los derechos reservados.
+              © {currentYear} GOTS Group Research - Universidad Industrial de Santander. Todos los derechos reservados.
             </p>
           </div>
         </div>

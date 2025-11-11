@@ -120,7 +120,7 @@ export default function EquipoPage() {
               Nuestro Equipo
             </h1>
             <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-              Conoce a los investigadores y estudiantes que conforman el grupo PIGroup de la Universidad Industrial de Santander
+              Conoce a los investigadores y estudiantes que conforman el Grupo de Óptica y Tratamiento de Señales (GOTS) de la Universidad Industrial de Santander
             </p>
           </div>
         </div>

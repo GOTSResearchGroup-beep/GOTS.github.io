@@ -28,7 +28,7 @@ export function NewsSection() {
   useEffect(() => {
     const loadNews = async () => {
       try {
-        const response = await fetch(getImagePath('/news.json'))
+  const response = await fetch(getImagePath('/Noticias/news.json'))
         const data = await response.json()
         // Filtrar solo las noticias destacadas y tomar las 3 más recientes
         const featured = data.news

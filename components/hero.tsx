@@ -17,7 +17,7 @@ export function Hero() {
           <div className="mb-8 flex justify-center">
             <Image
               src={getImagePath("/logo.png") || "/placeholder.svg"}
-              alt="PIGroup Logo"
+              alt="GOTS Logo"
               width={600}
               height={600}
               className="w-96 h-96 md:w-[28rem] md:h-[28rem] object-contain"
@@ -28,8 +28,7 @@ export function Hero() {
           </h1>
 
           <p className="text-lg md:text-xl font-sans text-primary-foreground/90 mb-8 max-w-2xl mx-auto text-pretty leading-relaxed">
-            Grupo de investigación de la Universidad Industrial de Santander dedicado a la innovación y excelencia en
-            investigación científica
+            Grupo de Óptica y Tratamiento de Señales (GOTS)
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

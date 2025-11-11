@@ -72,8 +72,12 @@ export default function PublicationsPage() {
   // Obtener años únicos
   const uniqueYears = [...new Set(publications.map(pub => pub.year))].sort((a, b) => b - a)
   
-  // Obtener conferencias únicas
-  const uniqueConferences = [...new Set(publications.map(pub => pub.conference))].sort()
+  // Obtener conferencias únicas (filtrar cadenas vacías para evitar <SelectItem value="">)
+  const uniqueConferences = [...new Set(
+    publications
+      .map(pub => (pub.conference || "").toString().trim())
+      .filter(c => c !== "")
+  )].sort()
 
   if (loading) {
     return (
