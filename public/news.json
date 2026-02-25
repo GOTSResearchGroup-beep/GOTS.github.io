@@ -11,8 +11,22 @@
       "featured": true,
       "category": "Seminario",
       "tags": ["seminario", "óptica"],
-      "author": "PIGroup UIS",
+      "author": "GOTS UIS",
       "readTime": "3 min"
+    },
+    {
+      "id": 2,
+      "title": "Seguro no sabías que...",
+      "description": "La vida en la Tierra utiliza casi exclusivamente moléculas \"zurdas\" (aminoácidos levógiros), a pesar de que en el laboratorio se obtienen mezclas 50/50. Este fenómeno, llamado homoquiralidad, es un misterio sin resolver. Las teorías apuntan a causas aleatorias, influencia extraterrestre o efectos de la luz polarizada en el espacio.",
+      "summary": "La homoquiralidad en la vida terrestre sigue siendo un misterio científico sin resolver.",
+      "date": "2026-02-25",
+      "dateFormatted": "25 de Febrero, 2026",
+      "image": "/Noticias/a2.jpeg",
+      "featured": true,
+      "category": "Curiosidad Científica",
+      "tags": ["química", "homoquiralidad", "ciencia"],
+      "author": "GOTS UIS",
+      "readTime": "2 min"
     }
   ]
 }

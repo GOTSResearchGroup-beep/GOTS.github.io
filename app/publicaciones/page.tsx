@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AuthorsList } from "@/components/ui/authors-list"
 import { Header } from "@/components/header"
-import { ExternalLink, Download, ArrowLeft } from "lucide-react"
-import { getImagePath, getPagePath } from "@/lib/utils"
+import { ExternalLink, Download } from "lucide-react"
+import { getImagePath } from "@/lib/utils"
+import { type Language, useLanguage } from "@/components/language-provider"
 
 interface Publication {
   id: number
@@ -25,11 +26,63 @@ interface Publication {
 }
 
 export default function PublicationsPage() {
+  const { language } = useLanguage()
   const [publications, setPublications] = useState<Publication[]>([])
   const [filteredPublications, setFilteredPublications] = useState<Publication[]>([])
   const [loading, setLoading] = useState(true)
   const [yearFilter, setYearFilter] = useState<string>("all")
   const [conferenceFilter, setConferenceFilter] = useState<string>("all")
+  const labels: Record<Language, Record<string, string>> = {
+    es: {
+      title: "Todas las Publicaciones",
+      subtitle: "Explora el catalogo completo de nuestras investigaciones y contribuciones cientificas",
+      showing: "Mostrando",
+      of: "de",
+      items: "publicaciones",
+      year: "Ano",
+      conference: "Conferencia",
+      allYears: "Todos los anos",
+      allConferences: "Todas las conferencias",
+      featured: "Destacada",
+      viewMore: "Ver mas",
+      noItems: "No se encontraron publicaciones con los filtros seleccionados",
+      noConference: "Sin conferencia",
+      noJournal: "Sin revista",
+    },
+    en: {
+      title: "All Publications",
+      subtitle: "Explore the full catalog of our research and scientific contributions",
+      showing: "Showing",
+      of: "of",
+      items: "publications",
+      year: "Year",
+      conference: "Conference",
+      allYears: "All years",
+      allConferences: "All conferences",
+      featured: "Featured",
+      viewMore: "View more",
+      noItems: "No publications found with the selected filters",
+      noConference: "No conference",
+      noJournal: "No journal",
+    },
+    fr: {
+      title: "Toutes les publications",
+      subtitle: "Explorez le catalogue complet de nos recherches et contributions scientifiques",
+      showing: "Affichage de",
+      of: "sur",
+      items: "publications",
+      year: "Annee",
+      conference: "Conference",
+      allYears: "Toutes les annees",
+      allConferences: "Toutes les conferences",
+      featured: "A la une",
+      viewMore: "Voir plus",
+      noItems: "Aucune publication ne correspond aux filtres selectionnes",
+      noConference: "Sans conference",
+      noJournal: "Sans revue",
+    },
+  }
+  const l = labels[language]
 
   useEffect(() => {
     const loadPublications = async () => {
@@ -101,10 +154,10 @@ export default function PublicationsPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6">
-              Todas las Publicaciones
+              {l.title}
             </h1>
             <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-              Explora el catálogo completo de nuestras investigaciones y contribuciones científicas
+              {l.subtitle}
             </p>
           </div>
         </div>
@@ -116,15 +169,15 @@ export default function PublicationsPage() {
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Mostrando {filteredPublications.length} de {publications.length} publicaciones
+                {l.showing} {filteredPublications.length} {l.of} {publications.length} {l.items}
               </div>
               <div className="flex gap-4">
                 <Select value={yearFilter} onValueChange={setYearFilter}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Año" />
+                    <SelectValue placeholder={l.year} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos los años</SelectItem>
+                    <SelectItem value="all">{l.allYears}</SelectItem>
                     {uniqueYears.map(year => (
                       <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                     ))}
@@ -133,10 +186,10 @@ export default function PublicationsPage() {
 
                 <Select value={conferenceFilter} onValueChange={setConferenceFilter}>
                   <SelectTrigger className="w-[160px]">
-                    <SelectValue placeholder="Conferencia" />
+                    <SelectValue placeholder={l.conference} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas las conferencias</SelectItem>
+                    <SelectItem value="all">{l.allConferences}</SelectItem>
                     {uniqueConferences.map(conference => (
                       <SelectItem key={conference} value={conference}>{conference}</SelectItem>
                     ))}
@@ -172,7 +225,7 @@ export default function PublicationsPage() {
                         />
                         {pub.starred && (
                           <div className="absolute top-3 left-3 bg-accent text-accent-foreground px-2 py-1 rounded-full text-xs font-medium">
-                            Destacada
+                            {l.featured}
                           </div>
                         )}
                       </div>
@@ -185,12 +238,12 @@ export default function PublicationsPage() {
                           <div className="flex items-start justify-between mb-3">
                             <div className="text-sm text-muted-foreground flex items-center gap-2">
                               <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">
-                                {pub.conference}
+                                {pub.conference || l.noConference}
                               </span>
                               <span>{pub.year}</span>
                               {pub.starred && !pub.image && (
                                 <span className="bg-accent text-accent-foreground px-2 py-1 rounded-full text-xs">
-                                  Destacada
+                                  {l.featured}
                                 </span>
                               )}
                             </div>
@@ -199,7 +252,7 @@ export default function PublicationsPage() {
                           <h3 className="text-xl font-serif font-bold mb-3 leading-tight">
                             <a 
                               href={process.env.NODE_ENV === "production" 
-                                ? `/pigroup-research/publicaciones/${pub.id}` 
+                                ? `/publicaciones/${pub.id}` 
                                 : `/publicaciones/${pub.id}`}
                               className="hover:text-accent transition-colors cursor-pointer"
                             >
@@ -214,7 +267,7 @@ export default function PublicationsPage() {
                               className="mb-2"
                             />
                             <p className="text-sm italic text-muted-foreground">
-                              {pub.journal}, {pub.year}
+                              {(pub.journal || l.noJournal)}, {pub.year}
                             </p>
                           </div>
 
@@ -254,7 +307,7 @@ export default function PublicationsPage() {
                           >
                             <a href={pub.externalUrl} target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="h-4 w-4 mr-2" />
-                              Ver más
+                              {l.viewMore}
                             </a>
                           </Button>
                         </div>
@@ -268,7 +321,7 @@ export default function PublicationsPage() {
             {filteredPublications.length === 0 && (
               <div className="text-center py-16">
                 <div className="text-muted-foreground text-lg">
-                  No se encontraron publicaciones con los filtros seleccionados
+                  {l.noItems}
                 </div>
               </div>
             )}

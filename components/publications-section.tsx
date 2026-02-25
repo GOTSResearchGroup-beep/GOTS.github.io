@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { AuthorsList } from "@/components/ui/authors-list"
 import { ExternalLink, Download, ArrowRight } from "lucide-react"
 import { getImagePath, getPagePath } from "@/lib/utils"
+import { useLanguage } from "@/components/language-provider"
 
 interface Publication {
   id: number
@@ -23,6 +24,7 @@ interface Publication {
 }
 
 export function PublicationsSection() {
+  const { t } = useLanguage()
   const [starredPublications, setStarredPublications] = useState<Publication[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -64,9 +66,9 @@ export function PublicationsSection() {
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-serif font-bold text-foreground mb-4">Publicaciones <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Destacadas</span></h2>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-foreground mb-4">{t("publications.title")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">{t("publications.highlight")}</span></h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Explora nuestras contribuciones científicas más relevantes en revistas y conferencias internacionales
+              {t("publications.description")}
             </p>
           </div>
 
@@ -89,7 +91,7 @@ export function PublicationsSection() {
                   <CardTitle className="text-lg font-serif leading-tight mb-2">
                     <a 
                       href={process.env.NODE_ENV === "production" 
-                        ? `/pigroup-research/publicaciones/${pub.id}` 
+                        ? `/publicaciones/${pub.id}` 
                         : `/publicaciones/${pub.id}`}
                       className="hover:text-gold transition-colors cursor-pointer"
                     >
@@ -118,7 +120,7 @@ export function PublicationsSection() {
                   <Button variant="outline" size="sm" className="flex-1 bg-transparent" asChild>
                     <a href={pub.externalUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Ver más
+                      {t("publications.viewMore")}
                     </a>
                   </Button>
                 </CardFooter>
@@ -134,8 +136,8 @@ export function PublicationsSection() {
               className="border-accent text-black hover:bg-accent hover:text-accent-foreground bg-transparent font-sans font-medium"
               asChild
             >
-              <a href={process.env.NODE_ENV === "production" ? "/pigroup-research/publicaciones" : "/publicaciones"}>
-                Ver Todas las Publicaciones
+              <a href={process.env.NODE_ENV === "production" ? "/publicaciones" : "/publicaciones"}>
+                {t("publications.viewAll")}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </a>
             </Button>

@@ -1,57 +1,210 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useEffect, useMemo, useState } from "react"
 import { Header } from "@/components/header"
-import { ArrowLeft, Mail, ExternalLink, GraduationCap, MapPin, User } from "lucide-react"
 import { getImagePath } from "@/lib/utils"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Mail, Linkedin, GraduationCap } from "lucide-react"
+import { type Language, useLanguage } from "@/components/language-provider"
 
 interface TeamMember {
   id: number
   nombre: string
-  apellido: string
-  cargo: string
-  nivelEscolar: string
-  especialidad: string
-  institucion: string
-  imagen: string
-  scholar: string | null
-  paginaPersonal: string | null
+  apellido: string | null
+  programaAcademico?: string | null
+  nivelEscolar?: string | null
   email: string
-  orcid: string | null
-  bio: string
-  areasInvestigacion: string[]
+  scholar?: string | null
+  linkedin?: string | null
+  researchgate?: string | null
   activo: boolean
 }
 
+type GroupKey = "profesores" | "doctorado" | "maestria" | "fisica" | "otros"
+
+const GROUP_ORDER: GroupKey[] = ["profesores", "doctorado", "maestria", "fisica", "otros"]
+
+function normalize(value?: string | null) {
+  return (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .trim()
+}
+
+function getProgram(member: TeamMember) {
+  return member.programaAcademico || member.nivelEscolar || "Sin programa"
+}
+
+function getGroup(program: string): GroupKey {
+  const text = normalize(program)
+  if (text.includes("PROFESOR")) return "profesores"
+  if (text.includes("DOCTORADO")) return "doctorado"
+  if (text.includes("MAESTRIA")) return "maestria"
+  if (text.includes("FISICA")) return "fisica"
+  return "otros"
+}
+
+const TEAM_PHOTOS = [
+  "/team/Alejandro Hernández/IMG_1364.jpg",
+  "/team/Ambar Nirvana/IMG_1189.jpg",
+  "/team/Angie Sandoval (Confley)/IMG_1043.jpg",
+  "/team/Angie Solano/IMG_1109.jpg",
+  "/team/Carlos Beltrán/IMG_1184.jpg",
+  "/team/Cristian Cely (Critian)/IMG_1141.jpg",
+  "/team/Jefferson Serrano/IMG_1174.jpg",
+  "/team/Juan Andres Guarin Rojas/JuanAndresGuarinRojas.jpeg",
+  "/team/Juan Reyes /IMG_1066.jpg",
+  "/team/Kebin/Kebin.jpg",
+  "/team/Jaime meneses/Jaime meneses.png",
+  "/team/Laura Almeidaa/IMG_1410.jpg",
+  "/team/lizaraso/lizaraso.png",
+  "/team/Mafe Estupiñan/IMG_1513.jpg",
+  "/team/Miguel Jafert (Goofy)/IMG_1107.jpg",
+  "/team/Rafael torres amaris/Rafael.JPG",
+  "/team/Sofía Cárdenas/IMG_1025.jpg",
+  "/team/Steven Marin/IMG_1154.jpg",
+  "/team/yesid torres moreno/yesid.png",
+  "/team/arturo plaza gomez/arturo.png",
+]
+
+function tokenize(value: string) {
+  return normalize(value)
+    .split(/\s+/)
+    .filter((x) => x.length >= 3)
+}
+
+function tokenSimilarity(a: string, b: string) {
+  if (a === b) return 1
+  if (a.startsWith(b) || b.startsWith(a)) return 0.8
+  return 0
+}
+
+function folderNameFromPath(path: string) {
+  const parts = path.split("/")
+  return parts[2] || ""
+}
+
+function matchScore(memberName: string, folderName: string) {
+  const memberTokens = tokenize(memberName)
+  const folderTokens = tokenize(folderName)
+  let score = 0
+
+  for (const mt of memberTokens) {
+    let best = 0
+    for (const ft of folderTokens) {
+      best = Math.max(best, tokenSimilarity(mt, ft))
+    }
+    score += best
+  }
+
+  return score
+}
+
+function getPhotoForMember(member: TeamMember) {
+  const fullName = `${member.nombre} ${member.apellido || ""}`.trim()
+  const normalizedName = normalize(fullName)
+
+  // Alias rules for known Excel/folder naming differences.
+  const aliases: Record<string, string> = {
+    "ARTURO PLATA GOMEZ": "/team/arturo plaza gomez/arturo.png",
+    "JAIME MENESES FONSECA": "/team/Jaime meneses/Jaime meneses.png",
+    "ZADRUA YOANA LIZARAZO MEJIA": "/team/lizaraso/lizaraso.png",
+    "FABIAN STEVEN MARIN MORENO": "/team/Steven Marin/IMG_1154.jpg",
+    "YESID TORRES MORENO": "/team/yesid torres moreno/yesid.png",
+    "YEZI TORRES MORENO": "/team/yesid torres moreno/yesid.png",
+    "KEBIN CONTRERAS": "/team/Kebin/Kebin.jpg",
+    "ANUAR NIRVANA RODRIGUEZ PEREZ": "/team/Ambar Nirvana/IMG_1189.jpg",
+    "MARIA SOFIA CARDENAS SANCHO": "/team/Sofía Cárdenas/IMG_1025.jpg",
+    "MIGUEL JAIFER SERRANO MANTILLA": "/team/Miguel Jafert (Goofy)/IMG_1107.jpg",
+    "SILVIA ALEJANDRA GOMEZ RODRIGUEZ": "/team/Laura Almeidaa/IMG_1410.jpg",
+    "SHARITH DAYANA PINZON QUINTERO": "/team/Mafe Estupiñan/IMG_1513.jpg",
+  }
+  if (aliases[normalizedName]) return aliases[normalizedName]
+
+  let bestPath = "/placeholder-user.jpg"
+  let bestScore = 0
+
+  for (const photoPath of TEAM_PHOTOS) {
+    const folderName = folderNameFromPath(photoPath)
+    const score = matchScore(fullName, folderName)
+    if (score > bestScore) {
+      bestScore = score
+      bestPath = photoPath
+    }
+  }
+
+  // Keep placeholder when confidence is low.
+  if (bestScore < 1.6) return "/placeholder-user.jpg"
+  return bestPath
+}
+
+function getMemberProfileLinks(member: TeamMember) {
+  const fullName = `${member.nombre} ${member.apellido || ""}`.trim()
+  const q = encodeURIComponent(fullName)
+
+  return {
+    mailto: `mailto:${member.email}`,
+    linkedin: member.linkedin || `https://www.linkedin.com/search/results/all/?keywords=${q}`,
+    researchgate: member.researchgate || `https://www.researchgate.net/search/researcher?q=${q}`,
+    scholar: member.scholar || `https://scholar.google.com/scholar?q=${q}`,
+  }
+}
+
 export default function EquipoPage() {
+  const { language } = useLanguage()
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null)
+  const ui: Record<Language, { teamTitle: string; loading: string; groupLabels: Record<GroupKey, string>; mailAria: string }> = {
+    es: {
+      teamTitle: "Equipo",
+      loading: "Cargando equipo...",
+      groupLabels: {
+        profesores: "Profesores",
+        doctorado: "Estudiantes Doctorado",
+        maestria: "Estudiantes Maestria",
+        fisica: "Estudiantes Fisica",
+        otros: "Otros",
+      },
+      mailAria: "Enviar correo",
+    },
+    en: {
+      teamTitle: "Team",
+      loading: "Loading team...",
+      groupLabels: {
+        profesores: "Professors",
+        doctorado: "Doctoral Students",
+        maestria: "Master's Students",
+        fisica: "Physics Students",
+        otros: "Others",
+      },
+      mailAria: "Send email",
+    },
+    fr: {
+      teamTitle: "Equipe",
+      loading: "Chargement de l'equipe...",
+      groupLabels: {
+        profesores: "Professeurs",
+        doctorado: "Etudiants en doctorat",
+        maestria: "Etudiants en master",
+        fisica: "Etudiants en physique",
+        otros: "Autres",
+      },
+      mailAria: "Envoyer un e-mail",
+    },
+  }
+  const labels = ui[language]
 
   useEffect(() => {
     const loadTeam = async () => {
       try {
-        const response = await fetch(getImagePath('/equipo.json'))
+        const response = await fetch(getImagePath("/equipo.json"))
         const data = await response.json()
-        // Filtrar solo miembros activos y ordenar por nivel académico
-        const activeMembers = data.team
-          .filter((member: TeamMember) => member.activo)
-          .sort((a: TeamMember, b: TeamMember) => {
-            const levels = {
-              'Doctorado': 4,
-              'Maestría': 3,
-              'Pregrado': 2,
-              'Bachiller': 1
-            }
-            const levelA = levels[a.nivelEscolar as keyof typeof levels] || 0
-            const levelB = levels[b.nivelEscolar as keyof typeof levels] || 0
-            return levelB - levelA
-          })
-        setTeamMembers(activeMembers)
+        const active = (data.team as TeamMember[]).filter((member) => member.activo)
+        setTeamMembers(active)
       } catch (error) {
-        console.error('Error loading team:', error)
+        console.error("Error loading team:", error)
       } finally {
         setLoading(false)
       }
@@ -60,232 +213,183 @@ export default function EquipoPage() {
     loadTeam()
   }, [])
 
-  const getNivelEscolarIcon = (nivel: string) => {
-    switch (nivel.toLowerCase()) {
-      case 'doctorado':
-        return '🎓'
-      case 'maestría':
-        return '📚'
-      case 'pregrado':
-        return '📖'
-      case 'bachiller':
-        return '🎒'
-      default:
-        return '📄'
+  const grouped = useMemo(() => {
+    const buckets: Record<GroupKey, TeamMember[]> = {
+      profesores: [],
+      doctorado: [],
+      maestria: [],
+      fisica: [],
+      otros: [],
     }
-  }
 
-  const getNivelEscolarColor = (nivel: string) => {
-    switch (nivel.toLowerCase()) {
-      case 'doctorado':
-        return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'maestría':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'pregrado':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'bachiller':
-        return 'bg-orange-100 text-orange-800 border-orange-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+    for (const member of teamMembers) {
+      buckets[getGroup(getProgram(member))].push(member)
     }
-  }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-32">
-          <div className="animate-pulse">
-            <div className="h-12 bg-muted rounded mb-4"></div>
-            <div className="h-6 bg-muted rounded max-w-2xl mx-auto mb-16"></div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1,2,3,4,5,6].map(i => (
-                <div key={i} className="bg-muted rounded-lg h-96"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+    for (const key of GROUP_ORDER) {
+      buckets[key].sort((a, b) => {
+        if (key === "profesores") {
+          const aName = normalize(`${a.nombre} ${a.apellido || ""}`)
+          const bName = normalize(`${b.nombre} ${b.apellido || ""}`)
+          const aProgram = normalize(getProgram(a))
+          const bProgram = normalize(getProgram(b))
+
+          const aIsRafael = aName.includes("RAFAEL") && aName.includes("TORRES")
+          const bIsRafael = bName.includes("RAFAEL") && bName.includes("TORRES")
+          if (aIsRafael && !bIsRafael) return -1
+          if (!aIsRafael && bIsRafael) return 1
+
+          const aIsCatedra = aProgram.includes("CATEDRA")
+          const bIsCatedra = bProgram.includes("CATEDRA")
+          if (aIsCatedra !== bIsCatedra) return aIsCatedra ? 1 : -1
+        }
+
+        const aName = `${a.nombre} ${a.apellido || ""}`.trim().toLowerCase()
+        const bName = `${b.nombre} ${b.apellido || ""}`.trim().toLowerCase()
+        return aName.localeCompare(bName)
+      })
+    }
+
+    return buckets
+  }, [teamMembers])
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      {/* Hero Section */}
+
       <div className="bg-primary text-primary-foreground py-16 pt-32">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">          
-            <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6">
-              Nuestro Equipo
-            </h1>
-            <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-              Conoce a los investigadores y estudiantes que conforman el Grupo de Óptica y Tratamiento de Señales (GOTS) de la Universidad Industrial de Santander
-            </p>
+          <div className="max-w-5xl mx-auto text-center">
+            <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6">{labels.teamTitle}</h1>
           </div>
         </div>
       </div>
 
-      {/* Team Stats */}
-      <div className="bg-secondary py-8">
+      <div className="py-12">
         <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="bg-background rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary">{teamMembers.length}</div>
-                <div className="text-sm text-muted-foreground">Miembros Activos</div>
-              </div>
-              <div className="bg-background rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary">
-                  {teamMembers.filter(m => m.nivelEscolar === 'Doctorado').length}
-                </div>
-                <div className="text-sm text-muted-foreground">Doctores</div>
-              </div>
-              <div className="bg-background rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary">
-                  {teamMembers.filter(m => m.nivelEscolar === 'Maestría').length}
-                </div>
-                <div className="text-sm text-muted-foreground">Magísteres</div>
-              </div>
-              <div className="bg-background rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary">
-                  {teamMembers.filter(m => m.nivelEscolar === 'Pregrado').length}
-                </div>
-                <div className="text-sm text-muted-foreground">Estudiantes</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+          <div className="max-w-6xl mx-auto space-y-10">
+            {loading && (
+              <div className="text-center text-muted-foreground">{labels.loading}</div>
+            )}
 
-      {/* Team Members */}
-      <div className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {teamMembers.map((member: TeamMember) => (
-                <Card key={member.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-                  {/* Imagen y nivel académico */}
-                  <div className="relative">
-                    <div className="aspect-square bg-muted overflow-hidden">
+            {!loading && GROUP_ORDER.map((group) => {
+              const members = grouped[group]
+              if (members.length === 0) return null
+
+              return (
+                <section key={group} className="rounded-xl border border-border bg-card overflow-hidden">
+                  <div className="px-6 py-4 border-b bg-secondary/60">
+                    <h2 className="text-2xl font-serif font-bold">
+                      {labels.groupLabels[group]} ({members.length})
+                    </h2>
+                  </div>
+
+                  <div className="p-6 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {members.map((member) => {
+                      const fullName = `${member.nombre} ${member.apellido || ""}`.trim()
+                      const imagePath = getPhotoForMember(member)
+                      return (
+                        <article
+                          key={member.id}
+                          className="rounded-xl border border-border bg-background overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
+                          onClick={() => setSelectedMember(member)}
+                        >
+                          <div className="aspect-[4/3] bg-muted overflow-hidden">
+                            <img
+                              src={getImagePath(imagePath)}
+                              alt={fullName}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.src = getImagePath("/placeholder-user.jpg")
+                              }}
+                            />
+                          </div>
+                          <div className="p-4 space-y-2">
+                            <h3 className="font-semibold leading-tight">{fullName}</h3>
+                            <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                              {getProgram(member)}
+                            </div>
+                          </div>
+                        </article>
+                      )
+                    })}
+                  </div>
+                </section>
+              )
+            })}
+
+            <Dialog open={selectedMember !== null} onOpenChange={(open) => !open && setSelectedMember(null)}>
+              {selectedMember && (
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {`${selectedMember.nombre} ${selectedMember.apellido || ""}`.trim()}
+                    </DialogTitle>
+                    <DialogDescription>{getProgram(selectedMember)}</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="w-full rounded-lg overflow-hidden bg-muted">
                       <img
-                        src={getImagePath(member.imagen)}
-                        alt={`${member.nombre} ${member.apellido}`}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        src={getImagePath(getPhotoForMember(selectedMember))}
+                        alt={`${selectedMember.nombre} ${selectedMember.apellido || ""}`.trim()}
+                        className="w-full h-auto max-h-[420px] object-cover"
                         onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = getImagePath('/placeholder-user.jpg');
+                          const target = e.target as HTMLImageElement
+                          target.src = getImagePath("/placeholder-user.jpg")
                         }}
                       />
                     </div>
-                    <div className="absolute top-3 right-3">
-                      <Badge className={`${getNivelEscolarColor(member.nivelEscolar)} border`}>
-                        <span className="mr-1">{getNivelEscolarIcon(member.nivelEscolar)}</span>
-                        {member.nivelEscolar}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  {/* Información del miembro */}
-                  <CardHeader className="pb-3">
-                    <div className="text-center">
-                      <CardTitle className="text-xl font-serif mb-1">
-                        {member.nombre} {member.apellido}
-                      </CardTitle>
-                      <p className="text-foreground font-medium text-sm mb-2">{member.cargo}</p>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    
-                    {/* Áreas de investigación */}
-                    <div>
-                      <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                        Áreas de Investigación
-                      </h4>
-                      <div className="flex flex-wrap gap-1">
-                        {member.areasInvestigacion.slice(0, 3).map((area, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {area}
-                          </Badge>
-                        ))}
-                        {member.areasInvestigacion.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{member.areasInvestigacion.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Información adicional */}
-                    <div className="space-y-2 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{member.institucion}</span>
-                      </div>
-                      {member.email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-3 w-3 flex-shrink-0" />
-                          <a 
-                            href={`mailto:${member.email}`}
-                            className="truncate hover:text-primary transition-colors"
+                    {(() => {
+                      const links = getMemberProfileLinks(selectedMember)
+                      return (
+                        <div className="flex items-center justify-center gap-5 py-2">
+                          <a
+                            href={links.mailto}
+                            className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm transition-transform hover:scale-105"
+                            aria-label={labels.mailAria}
+                            title={labels.mailAria}
                           >
-                            {member.email}
+                            <Mail className="h-8 w-8 text-red-600" />
+                          </a>
+                          <a
+                            href={links.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm transition-transform hover:scale-105"
+                            aria-label="LinkedIn"
+                            title="LinkedIn"
+                          >
+                            <Linkedin className="h-8 w-8 text-[#0A66C2]" />
+                          </a>
+                          <a
+                            href={links.researchgate}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm transition-transform hover:scale-105"
+                            aria-label="ResearchGate"
+                            title="ResearchGate"
+                          >
+                            <span className="text-lg font-extrabold text-[#00CCBB]">RG</span>
+                          </a>
+                          <a
+                            href={links.scholar}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm transition-transform hover:scale-105"
+                            aria-label="Google Scholar"
+                            title="Google Scholar"
+                          >
+                            <GraduationCap className="h-8 w-8 text-[#1A73E8]" />
                           </a>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Enlaces */}
-                    <div className="flex gap-2 pt-2">
-                      {member.scholar && (
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 text-xs border-accent text-black hover:bg-accent hover:text-accent-foreground bg-transparent"
-                        >
-                          <a 
-                            href={member.scholar} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                          >
-                            <GraduationCap className="h-3 w-3 mr-1" />
-                            Scholar
-                          </a>
-                        </Button>
-                      )}
-                      {member.paginaPersonal && (
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 text-xs border-accent text-black hover:bg-accent hover:text-accent-foreground bg-transparent"
-                        >
-                          <a 
-                            href={member.paginaPersonal} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Web
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {teamMembers.length === 0 && (
-              <div className="text-center py-16">
-                <div className="text-muted-foreground text-lg">
-                  No se encontraron miembros del equipo
-                </div>
-              </div>
-            )}
+                      )
+                    })()}
+                  </div>
+                </DialogContent>
+              )}
+            </Dialog>
           </div>
         </div>
       </div>

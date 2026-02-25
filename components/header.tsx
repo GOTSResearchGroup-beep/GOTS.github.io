@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getImagePath, getPagePath } from "@/lib/utils"
+import { getPagePath } from "@/lib/utils"
+import { useLanguage } from "@/components/language-provider"
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { language, setLanguage, t } = useLanguage()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,10 +20,15 @@ export function Header() {
   }, [])
 
   const navItems = [
-    { href: "/", label: "Inicio", isSection: false },
-    { href: "/noticias", label: "Noticias", isSection: false },
-    { href: "/publicaciones", label: "Publicaciones", isSection: false },
-    { href: "/equipo", label: "Equipo", isSection: false },
+    { href: "/", label: t("nav.home"), isSection: false },
+    { href: "/noticias", label: t("nav.news"), isSection: false },
+    { href: "/publicaciones", label: t("nav.publications"), isSection: false },
+    { href: "/equipo", label: t("nav.team"), isSection: false },
+  ]
+  const languageOptions = [
+    { code: "fr" as const, label: "FR", flag: "🇫🇷" },
+    { code: "es" as const, label: "ES", flag: "🇨🇴" },
+    { code: "en" as const, label: "EN", flag: "🇬🇧" },
   ]
 
   return (
@@ -60,6 +67,26 @@ export function Header() {
                 </a>
               )
             })}
+            <div className="flex items-center gap-1 rounded-md border border-border/60 bg-background/20 p-1">
+              {languageOptions.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => setLanguage(lang.code)}
+                  className={`rounded px-2 py-1 text-xs font-semibold uppercase transition-colors ${
+                    language === lang.code
+                      ? "bg-accent text-accent-foreground"
+                      : isScrolled
+                        ? "text-foreground/80 hover:text-foreground"
+                        : "text-white/80 hover:text-white"
+                  }`}
+                  aria-label={`Change language to ${lang.code}`}
+                >
+                  <span className="mr-1">{lang.flag}</span>
+                  {lang.label}
+                </button>
+              ))}
+            </div>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -91,6 +118,24 @@ export function Header() {
                 </a>
               )
             })}
+            <div className="flex items-center gap-2 pt-2">
+              {languageOptions.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => setLanguage(lang.code)}
+                  className={`rounded px-2 py-1 text-xs font-semibold uppercase transition-colors ${
+                    language === lang.code
+                      ? "bg-accent text-accent-foreground"
+                      : "text-foreground/80 hover:text-foreground"
+                  }`}
+                  aria-label={`Change language to ${lang.code}`}
+                >
+                  <span className="mr-1">{lang.flag}</span>
+                  {lang.label}
+                </button>
+              ))}
+            </div>
           </nav>
         )}
       </div>

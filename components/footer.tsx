@@ -1,10 +1,14 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { Instagram, Linkedin, Github } from "lucide-react"
 import { getImagePath } from "@/lib/utils"
+import { useLanguage } from "@/components/language-provider"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
+  const { t } = useLanguage()
 
   return (
     <footer className="bg-primary text-primary-foreground py-12">
@@ -24,20 +28,20 @@ export function Footer() {
                 <span className="text-lg font-serif font-bold">GOTS Group Research</span>
               </div>
               <p className="text-sm text-primary-foreground/80 leading-relaxed">
-                Grupo de Óptica y Tratamiento de Señales (GOTS)
+                {t("hero.subtitle")}
               </p>
             </div>
 
             {/* Quick Links */}
             <div>
-              <h3 className="font-serif font-semibold mb-4">Enlaces Rápidos</h3>
+              <h3 className="font-serif font-semibold mb-4">{t("footer.quickLinks")}</h3>
               <ul className="space-y-2">
                 <li>
                   <Link
                     href="#inicio"
                     className="text-sm text-primary-foreground/80 hover:text-accent transition-colors"
                   >
-                    Inicio
+                    {t("nav.home")}
                   </Link>
                 </li>
                 <li>
@@ -45,7 +49,7 @@ export function Footer() {
                     href="#noticias"
                     className="text-sm text-primary-foreground/80 hover:text-accent transition-colors"
                   >
-                    Noticias
+                    {t("nav.news")}
                   </Link>
                 </li>
                 <li>
@@ -53,7 +57,7 @@ export function Footer() {
                     href="#publicaciones"
                     className="text-sm text-primary-foreground/80 hover:text-accent transition-colors"
                   >
-                    Publicaciones
+                    {t("nav.publications")}
                   </Link>
                 </li>
                 <li>
@@ -61,7 +65,7 @@ export function Footer() {
                     href="#contacto"
                     className="text-sm text-primary-foreground/80 hover:text-accent transition-colors"
                   >
-                    Contacto
+                    {t("contact.title")}
                   </Link>
                 </li>
               </ul>
@@ -69,7 +73,7 @@ export function Footer() {
 
             {/* Social Media */}
             <div>
-              <h3 className="font-serif font-semibold mb-4">Síguenos</h3>
+              <h3 className="font-serif font-semibold mb-4">{t("footer.followUs")}</h3>
               <div className="flex gap-4">
                 <a
                   href="https://instagram.com"
@@ -105,7 +109,7 @@ export function Footer() {
           {/* Bottom Bar */}
           <div className="border-t border-primary-foreground/20 pt-8 text-center">
             <p className="text-sm text-primary-foreground/70">
-              © {currentYear} GOTS Group Research - Universidad Industrial de Santander. Todos los derechos reservados.
+              © {currentYear} GOTS Group Research - Universidad Industrial de Santander. {t("footer.rights")}
             </p>
           </div>
         </div>

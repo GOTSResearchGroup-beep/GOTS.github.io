@@ -59,7 +59,7 @@ export default async function PublicationDetailPage({
         <div className="mb-6">
           <Button variant="outline" size="sm" asChild>
             <a 
-              href={process.env.NODE_ENV === "production" ? "/pigroup-research/publicaciones" : "/publicaciones"}
+              href={process.env.NODE_ENV === "production" ? "/publicaciones" : "/publicaciones"}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />

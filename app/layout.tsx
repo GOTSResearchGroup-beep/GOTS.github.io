@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 // import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
+import { LanguageProvider } from "@/components/language-provider"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,9 +22,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={inter.variable}>
+    <html lang="fr" className={inter.variable}>
       <body className={`font-sans antialiased`}>
-        {children}
+        <LanguageProvider>{children}</LanguageProvider>
   {/* <Analytics /> */}
       </body>
     </html>

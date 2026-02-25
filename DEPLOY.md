@@ -4,7 +4,7 @@
 
 ### 1. Crear el repositorio en GitHub
 - Ve a GitHub y crea un nuevo repositorio
-- Nómbralo `pigroup-research` (o el nombre que prefieras)
+- Nómbralo `GOTS.github.io` (o el nombre que prefieras)
 - No inicialices con README, .gitignore o licencia
 
 ### 2. Subir el código al repositorio
@@ -14,9 +14,9 @@ Abre una terminal en la carpeta de tu proyecto y ejecuta:
 \`\`\`bash
 git init
 git add .
-git commit -m "Initial commit: PIGroup website"
+git commit -m "Initial commit: GOTS website"
 git branch -M main
-git remote add origin https://github.com/TU-USUARIO/pigroup-research.git
+git remote add origin https://github.com/TU-USUARIO/GOTS.github.io.git
 git push -u origin main
 \`\`\`
 
@@ -34,11 +34,11 @@ git push -u origin main
 - El workflow se ejecutará automáticamente
 - Puedes ver el progreso en la pestaña **Actions** de tu repositorio
 - Cuando termine (marca verde ✓), tu sitio estará disponible en:
-  `https://TU-USUARIO.github.io/pigroup-research/`
+  `https://TU-USUARIO.github.io/GOTS.github.io/`
 
 ### 5. Actualizar el basePath (si usas otro nombre de repositorio)
 
-Si nombraste tu repositorio diferente a `pigroup-research`, debes actualizar el archivo `next.config.mjs`:
+Si nombraste tu repositorio diferente a `GOTS.github.io`, debes actualizar el archivo `next.config.mjs`:
 
 \`\`\`javascript
 basePath: process.env.NODE_ENV === 'production' ? '/NOMBRE-DE-TU-REPO' : '',

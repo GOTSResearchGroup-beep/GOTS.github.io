@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button"
 import { Calendar, ArrowRight } from "lucide-react"
 import { getImagePath, getPagePath } from "@/lib/utils"
+import { type Language, useLanguage } from "@/components/language-provider"
+import { localizeNewsItem } from "@/lib/content-i18n"
 
 interface NewsItem {
   id: number
@@ -23,11 +25,18 @@ interface NewsItem {
 }
 
 export function NewsSection() {
+  const { t, language } = useLanguage()
   const [featuredNews, setFeaturedNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [now, setNow] = useState<Date>(new Date())
   const openModal = (id: number) => setExpandedId(id)
   const closeModal = () => setExpandedId(null)
+  const modalSeminario: Record<Language, string> = {
+    es: "Seguro no sabias que...\n\nLas cristalinas del nucleo del cristalino son algunas de las proteinas mas longevas del organismo humano; muchas nunca se reemplazan desde antes del nacimiento. Con el paso de las decadas sufren modificaciones post-traduccionales acumulativas (oxidacion, deamidacion) que generan pigmentos amarillentos. Este envejecimiento molecular silencioso esta directamente ligado a las cataratas.",
+    en: "Did you know?\n\nCrystallins in the lens nucleus are among the longest-lived proteins in the human body; many are never replaced after birth. Over decades, they accumulate post-translational modifications (oxidation, deamidation) that generate yellowish pigments. This silent molecular aging is directly linked to cataracts.",
+    fr: "Le saviez-vous ?\n\nLes cristallines du noyau du cristallin font partie des proteines les plus longeves du corps humain ; beaucoup ne sont jamais remplacees apres la naissance. Au fil des decennies, elles accumulent des modifications post-traductionnelles (oxydation, desamidation) qui generent des pigments jaunatres. Ce vieillissement moleculaire silencieux est directement lie aux cataractes.",
+  }
 
   useEffect(() => {
     const loadNews = async () => {
@@ -50,6 +59,36 @@ export function NewsSection() {
     loadNews()
   }, [])
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const todayLabel: Record<Language, string> = {
+    es: "Hoy",
+    en: "Today",
+    fr: "Aujourd'hui",
+  }
+
+  const countdownLabel: Record<Language, string> = {
+    es: "Empieza en",
+    en: "Starts in",
+    fr: "Commence dans",
+  }
+
+  const getCountdownToToday6pm = (item: NewsItem) => {
+    if (item.id !== 2) return null
+    const target = new Date(now)
+    target.setHours(18, 0, 0, 0)
+    const ms = target.getTime() - now.getTime()
+    if (ms <= 0) return null
+    const total = Math.floor(ms / 1000)
+    const h = Math.floor(total / 3600)
+    const m = Math.floor((total % 3600) / 60)
+    const s = total % 60
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+  }
+
   if (loading) {
     return (
       <section id="noticias" className="py-24 bg-secondary">
@@ -70,70 +109,77 @@ export function NewsSection() {
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-serif font-bold text-foreground mb-4">Noticias <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Destacadas</span></h2>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-foreground mb-4">{t("news.title")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">{t("news.highlight")}</span></h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Mantente al día con las últimas novedades y logros más importantes de nuestro grupo de investigación
+              {t("news.description")}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredNews.map((news: NewsItem) => (
+            {featuredNews.map((news: NewsItem) => {
+              const localized = localizeNewsItem(news, language)
+              const countdown = getCountdownToToday6pm(news)
+              return (
               <Card
-                key={news.id}
+                key={localized.id}
                 className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => openModal(news.id)}
+                onClick={() => openModal(localized.id)}
               >
                 <div className="aspect-video relative overflow-hidden bg-muted">
                   <img
-                    src={getImagePath(news.image) || getImagePath("/placeholder.svg")}
-                    alt={news.title}
+                    src={getImagePath(localized.image) || getImagePath("/placeholder.svg")}
+                    alt={localized.title}
                     className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <CardHeader>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <Calendar className="h-4 w-4" />
-                    <span>{news.dateFormatted}</span>
+                    <span>{localized.dateFormatted}</span>
                     <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">
-                      {news.category}
+                      {localized.category}
                     </span>
                   </div>
-                  <CardTitle className="text-xl font-serif">{news.title}</CardTitle>
+                  <CardTitle className="text-xl font-serif">{localized.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base leading-relaxed">
-                    {news.summary}
+                    {localized.summary}
                   </CardDescription>
+                  {countdown && (
+                    <div className="mt-3 text-xs font-semibold text-orange-600">
+                      {countdownLabel[language]} {countdown}
+                    </div>
+                  )}
                   <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                    <span className="text-xs text-muted-foreground">{news.readTime} de lectura</span>
-                    <span className="text-xs font-medium text-primary">Destacada</span>
+                    <span className="text-xs text-muted-foreground">{localized.readTime} {t("news.readingTime")}</span>
+                    <span className="text-xs font-medium text-primary">{countdown ? todayLabel[language] : t("news.featured")}</span>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )})}
           </div>
           {/* Modal de noticia expandida */}
           <Dialog open={expandedId !== null} onOpenChange={open => !open && closeModal()}>
             {expandedId !== null && (() => {
               const item = featuredNews.find(n => n.id === expandedId)
               if (!item) return null
-              // Texto especial para el seminario
-              const seminarioTexto = `Seguro no sabías que...\n\nLas cristalinas del núcleo del cristalino son algunas de las proteínas más longevas del organismo humano; muchas nunca se reemplazan desde antes del nacimiento. Con el paso de las décadas sufren modificaciones post-traduccionales acumulativas (oxidación, deamidación) que generan pigmentos amarillentos. Este envejecimiento molecular silencioso está directamente ligado a las cataratas.`
+              const localizedItem = localizeNewsItem(item, language)
               return (
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>{item.title}</DialogTitle>
-                    <DialogDescription>{item.dateFormatted} &middot; {item.category}</DialogDescription>
+                    <DialogTitle>{localizedItem.title}</DialogTitle>
+                    <DialogDescription>{localizedItem.dateFormatted} &middot; {localizedItem.category}</DialogDescription>
                   </DialogHeader>
                   <div className="w-full flex flex-col items-center gap-6">
                     <img
                       src={getImagePath(item.image)}
-                      alt={item.title}
+                      alt={localizedItem.title}
                       className="w-full max-w-lg rounded-lg shadow-lg object-cover"
                       style={{ maxHeight: 350, objectFit: 'cover' }}
                     />
                     <div className="w-full text-base text-foreground whitespace-pre-line">
-                      {item.id === 1 ? seminarioTexto : item.description}
+                      {item.id === 1 ? modalSeminario[language] : (localizedItem.content || localizedItem.description)}
                     </div>
                   </div>
                 </DialogContent>
@@ -150,7 +196,7 @@ export function NewsSection() {
               asChild
             >
               <a href={getPagePath('/noticias')}>
-                Ver Todas las Noticias
+                {t("news.viewAll")}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </a>
             </Button>
