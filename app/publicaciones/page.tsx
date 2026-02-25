@@ -83,6 +83,8 @@ export default function PublicationsPage() {
     },
   }
   const l = labels[language]
+  const forceLastTitle =
+    "Computational Correction of Eye Aberrations: A Physical Modeling Approach with Zernike Polynomials and Deep Learning"
 
   useEffect(() => {
     const loadPublications = async () => {
@@ -102,7 +104,7 @@ export default function PublicationsPage() {
   }, [])
 
   useEffect(() => {
-    let filtered = publications
+    let filtered = [...publications]
 
     if (yearFilter !== "all") {
       filtered = filtered.filter(pub => pub.year.toString() === yearFilter)
@@ -114,6 +116,8 @@ export default function PublicationsPage() {
 
     // Ordenar por año (más recientes primero) y luego por destacadas
     filtered.sort((a, b) => {
+      if (a.title === forceLastTitle && b.title !== forceLastTitle) return 1
+      if (b.title === forceLastTitle && a.title !== forceLastTitle) return -1
       if (a.year !== b.year) return b.year - a.year
       if (a.starred !== b.starred) return a.starred ? -1 : 1
       return 0
