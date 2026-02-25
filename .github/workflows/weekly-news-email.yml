@@ -33,5 +33,5 @@ jobs:
           TEST_RECIPIENT: ${{ secrets.SMTP_USER }}
           SEND_MODE: ${{ github.event.inputs.mode }}
           FROM_NAME: GOTS Research Group
-          NEWS_URL: https://gots.uis.edu.co/noticias
+          NEWS_URL: https://gotsresearchgroup-beep.github.io/GOTS.github.io/noticias
         run: python scripts/send_weekly_news.py
