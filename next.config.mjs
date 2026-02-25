@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === "production"
+const repoName = "GOTS.github.io"
+
 const nextConfig = {
-  output: 'export',
-  // basePath eliminado para despliegue en la raíz de GOTS.github.io
+  output: "export",
+  basePath: isProd ? `/${repoName}` : "",
+  assetPrefix: isProd ? `/${repoName}/` : "",
   eslint: {
     ignoreDuringBuilds: true,
   },

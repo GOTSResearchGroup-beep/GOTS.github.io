@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AuthorsList } from "@/components/ui/authors-list"
 import { Header } from "@/components/header"
 import { ExternalLink, Download } from "lucide-react"
-import { getImagePath } from "@/lib/utils"
+import { getImagePath, getPagePath } from "@/lib/utils"
 import { type Language, useLanguage } from "@/components/language-provider"
 
 interface Publication {
@@ -251,9 +251,7 @@ export default function PublicationsPage() {
                           
                           <h3 className="text-xl font-serif font-bold mb-3 leading-tight">
                             <a 
-                              href={process.env.NODE_ENV === "production" 
-                                ? `/publicaciones/${pub.id}` 
-                                : `/publicaciones/${pub.id}`}
+                              href={getPagePath(`/publicaciones/${pub.id}`)}
                               className="hover:text-accent transition-colors cursor-pointer"
                             >
                               {pub.title}

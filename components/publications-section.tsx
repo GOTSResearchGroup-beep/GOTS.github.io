@@ -90,9 +90,7 @@ export function PublicationsSection() {
                 <CardHeader className="flex-grow">
                   <CardTitle className="text-lg font-serif leading-tight mb-2">
                     <a 
-                      href={process.env.NODE_ENV === "production" 
-                        ? `/publicaciones/${pub.id}` 
-                        : `/publicaciones/${pub.id}`}
+                      href={getPagePath(`/publicaciones/${pub.id}`)}
                       className="hover:text-gold transition-colors cursor-pointer"
                     >
                       {pub.title}
@@ -136,7 +134,7 @@ export function PublicationsSection() {
               className="border-accent text-black hover:bg-accent hover:text-accent-foreground bg-transparent font-sans font-medium"
               asChild
             >
-              <a href={process.env.NODE_ENV === "production" ? "/publicaciones" : "/publicaciones"}>
+              <a href={getPagePath("/publicaciones")}>
                 {t("publications.viewAll")}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </a>

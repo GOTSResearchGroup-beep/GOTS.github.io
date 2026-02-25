@@ -6,11 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getImagePath(path: string): string {
-  // No necesitamos basePath para Vercel
-  return path
+  const basePath = process.env.NODE_ENV === "production" ? "/GOTS.github.io" : ""
+  return `${basePath}${path}`
 }
 
 export function getPagePath(path: string): string {
-  // No necesitamos basePath para Vercel
-  return path
+  const basePath = process.env.NODE_ENV === "production" ? "/GOTS.github.io" : ""
+  return `${basePath}${path}`
 }
