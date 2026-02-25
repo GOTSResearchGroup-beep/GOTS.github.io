@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === "production"
-const repoName = "GOTS.github.io"
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ""
 
 const nextConfig = {
   output: "export",
-  basePath: isProd ? `/${repoName}` : "",
-  assetPrefix: isProd ? `/${repoName}/` : "",
+  basePath: isProd ? basePath : "",
+  assetPrefix: isProd && basePath ? `${basePath}/` : "",
   eslint: {
     ignoreDuringBuilds: true,
   },

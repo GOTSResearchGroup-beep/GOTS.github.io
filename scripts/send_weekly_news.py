@@ -83,7 +83,7 @@ def send_email():
   from_name = os.getenv("FROM_NAME", "GOTS Research Group").strip()
   site_url = os.getenv(
     "NEWS_URL",
-    "https://gotsresearchgroup-beep.github.io/GOTS.github.io/noticias",
+    "https://gots.uis.edu.co/noticias",
   ).strip()
   send_mode = os.getenv("SEND_MODE", "preview").strip().lower()
   test_recipient = os.getenv("TEST_RECIPIENT", "").strip()
