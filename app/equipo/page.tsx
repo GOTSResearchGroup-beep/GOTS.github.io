@@ -228,6 +228,10 @@ export default function EquipoPage() {
 
     for (const key of GROUP_ORDER) {
       buckets[key].sort((a, b) => {
+        const aHasPhoto = getPhotoForMember(a) !== "/placeholder-user.jpg"
+        const bHasPhoto = getPhotoForMember(b) !== "/placeholder-user.jpg"
+        if (aHasPhoto !== bHasPhoto) return aHasPhoto ? -1 : 1
+
         if (key === "profesores") {
           const aName = normalize(`${a.nombre} ${a.apellido || ""}`)
           const bName = normalize(`${b.nombre} ${b.apellido || ""}`)
